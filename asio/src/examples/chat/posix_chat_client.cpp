@@ -11,8 +11,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <boost/array.hpp>
-#include <boost/bind.hpp>
+#include <array>
+#include <functional>
 #include "asio.hpp"
 #include "chat_message.hpp"
 
@@ -32,7 +32,7 @@ public:
       input_buffer_(chat_message::max_body_length)
   {
     asio::async_connect(socket_, endpoint_iterator,
-        boost::bind(&posix_chat_client::handle_connect, this,
+        std::bind(&posix_chat_client::handle_connect, this,
           asio::placeholders::error));
   }
 
@@ -45,12 +45,12 @@ private:
       // Read the fixed-length header of the next message from the server.
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::header_length),
-          boost::bind(&posix_chat_client::handle_read_header, this,
+          std::bind(&posix_chat_client::handle_read_header, this,
             asio::placeholders::error));
 
       // Read a line of input entered by the user.
       asio::async_read_until(input_, input_buffer_, '\n',
-          boost::bind(&posix_chat_client::handle_read_input, this,
+          std::bind(&posix_chat_client::handle_read_input, this,
             asio::placeholders::error,
             asio::placeholders::bytes_transferred));
     }
@@ -63,7 +63,7 @@ private:
       // Read the variable-length body of the message from the server.
       asio::async_read(socket_,
           asio::buffer(read_msg_.body(), read_msg_.body_length()),
-          boost::bind(&posix_chat_client::handle_read_body, this,
+          std::bind(&posix_chat_client::handle_read_body, this,
             asio::placeholders::error));
     }
     else
@@ -78,11 +78,11 @@ private:
     {
       // Write out the message we just received, terminated by a newline.
       static char eol[] = { '\n' };
-      boost::array<asio::const_buffer, 2> buffers = {{
+      std::array<asio::const_buffer, 2> buffers = {{
         asio::buffer(read_msg_.body(), read_msg_.body_length()),
         asio::buffer(eol) }};
       asio::async_write(output_, buffers,
-          boost::bind(&posix_chat_client::handle_write_output, this,
+          std::bind(&posix_chat_client::handle_write_output, this,
             asio::placeholders::error));
     }
     else
@@ -98,7 +98,7 @@ private:
       // Read the fixed-length header of the next message from the server.
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::header_length),
-          boost::bind(&posix_chat_client::handle_read_header, this,
+          std::bind(&posix_chat_client::handle_read_header, this,
             asio::placeholders::error));
     }
     else
@@ -119,7 +119,7 @@ private:
       write_msg_.encode_header();
       asio::async_write(socket_,
           asio::buffer(write_msg_.data(), write_msg_.length()),
-          boost::bind(&posix_chat_client::handle_write, this,
+          std::bind(&posix_chat_client::handle_write, this,
             asio::placeholders::error));
     }
     else if (error == asio::error::not_found)
@@ -130,7 +130,7 @@ private:
       write_msg_.encode_header();
       asio::async_write(socket_,
           asio::buffer(write_msg_.data(), write_msg_.length()),
-          boost::bind(&posix_chat_client::handle_write, this,
+          std::bind(&posix_chat_client::handle_write, this,
             asio::placeholders::error));
     }
     else
@@ -145,7 +145,7 @@ private:
     {
       // Read a line of input entered by the user.
       asio::async_read_until(input_, input_buffer_, '\n',
-          boost::bind(&posix_chat_client::handle_read_input, this,
+          std::bind(&posix_chat_client::handle_read_input, this,
             asio::placeholders::error,
             asio::placeholders::bytes_transferred));
     }

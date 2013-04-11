@@ -14,9 +14,8 @@
 #include <iostream>
 #include <list>
 #include <set>
-#include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <memory>
+#include <functional>
 #include "asio.hpp"
 #include "chat_message.hpp"
 
@@ -35,7 +34,7 @@ public:
   virtual void deliver(const chat_message& msg) = 0;
 };
 
-typedef boost::shared_ptr<chat_participant> chat_participant_ptr;
+typedef std::shared_ptr<chat_participant> chat_participant_ptr;
 
 //----------------------------------------------------------------------
 
@@ -46,7 +45,7 @@ public:
   {
     participants_.insert(participant);
     std::for_each(recent_msgs_.begin(), recent_msgs_.end(),
-        boost::bind(&chat_participant::deliver, participant, _1));
+        std::bind(&chat_participant::deliver, participant, std::placeholders::_1));
   }
 
   void leave(chat_participant_ptr participant)
@@ -61,7 +60,7 @@ public:
       recent_msgs_.pop_front();
 
     std::for_each(participants_.begin(), participants_.end(),
-        boost::bind(&chat_participant::deliver, _1, boost::ref(msg)));
+        std::bind(&chat_participant::deliver, std::placeholders::_1, std::ref(msg)));
   }
 
 private:
@@ -74,7 +73,7 @@ private:
 
 class chat_session
   : public chat_participant,
-    public boost::enable_shared_from_this<chat_session>
+    public std::enable_shared_from_this<chat_session>
 {
 public:
   chat_session(asio::io_service& io_service, chat_room& room)
@@ -93,9 +92,9 @@ public:
     room_.join(shared_from_this());
     asio::async_read(socket_,
         asio::buffer(read_msg_.data(), chat_message::header_length),
-        boost::bind(
+        std::bind(
           &chat_session::handle_read_header, shared_from_this(),
-          asio::placeholders::error));
+          std::placeholders::_1));
   }
 
   void deliver(const chat_message& msg)
@@ -107,8 +106,8 @@ public:
       asio::async_write(socket_,
           asio::buffer(write_msgs_.front().data(),
             write_msgs_.front().length()),
-          boost::bind(&chat_session::handle_write, shared_from_this(),
-            asio::placeholders::error));
+          std::bind(&chat_session::handle_write, shared_from_this(),
+            std::placeholders::_1));
     }
   }
 
@@ -118,8 +117,8 @@ public:
     {
       asio::async_read(socket_,
           asio::buffer(read_msg_.body(), read_msg_.body_length()),
-          boost::bind(&chat_session::handle_read_body, shared_from_this(),
-            asio::placeholders::error));
+          std::bind(&chat_session::handle_read_body, shared_from_this(),
+            std::placeholders::_1));
     }
     else
     {
@@ -134,8 +133,8 @@ public:
       room_.deliver(read_msg_);
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::header_length),
-          boost::bind(&chat_session::handle_read_header, shared_from_this(),
-            asio::placeholders::error));
+          std::bind(&chat_session::handle_read_header, shared_from_this(),
+            std::placeholders::_1));
     }
     else
     {
@@ -153,8 +152,8 @@ public:
         asio::async_write(socket_,
             asio::buffer(write_msgs_.front().data(),
               write_msgs_.front().length()),
-            boost::bind(&chat_session::handle_write, shared_from_this(),
-              asio::placeholders::error));
+            std::bind(&chat_session::handle_write, shared_from_this(),
+              std::placeholders::_1));
       }
     }
     else
@@ -170,7 +169,7 @@ private:
   chat_message_queue write_msgs_;
 };
 
-typedef boost::shared_ptr<chat_session> chat_session_ptr;
+typedef std::shared_ptr<chat_session> chat_session_ptr;
 
 //----------------------------------------------------------------------
 
@@ -189,8 +188,8 @@ public:
   {
     chat_session_ptr new_session(new chat_session(io_service_, room_));
     acceptor_.async_accept(new_session->socket(),
-        boost::bind(&chat_server::handle_accept, this, new_session,
-          asio::placeholders::error));
+        std::bind(&chat_server::handle_accept, this, new_session,
+          std::placeholders::_1));
   }
 
   void handle_accept(chat_session_ptr session,
@@ -210,7 +209,7 @@ private:
   chat_room room_;
 };
 
-typedef boost::shared_ptr<chat_server> chat_server_ptr;
+typedef std::shared_ptr<chat_server> chat_server_ptr;
 typedef std::list<chat_server_ptr> chat_server_list;
 
 //----------------------------------------------------------------------

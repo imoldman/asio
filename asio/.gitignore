@@ -16,4 +16,6 @@ missing
 /boostified
 *.gz
 *.bz2
+*.swp
 *.zip
+/bin

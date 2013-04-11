@@ -5,13 +5,13 @@
 // Copyright (c) 2003-2012 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+// file LICENSEstd::placeholders::_1_0.txt or copy at http://www.boost.org/LICENSEstd::placeholders::_1_0.txt)
 //
 
 #include <cstdlib>
 #include <deque>
 #include <iostream>
-#include <boost/bind.hpp>
+#include <functional>
 #include "asio.hpp"
 #include "chat_message.hpp"
 
@@ -28,18 +28,18 @@ public:
       socket_(io_service)
   {
     asio::async_connect(socket_, endpoint_iterator,
-        boost::bind(&chat_client::handle_connect, this,
-          asio::placeholders::error));
+        std::bind(&chat_client::handle_connect, this,
+          std::placeholders::_1));
   }
 
   void write(const chat_message& msg)
   {
-    io_service_.post(boost::bind(&chat_client::do_write, this, msg));
+    io_service_.post(std::bind(&chat_client::do_write, this, msg));
   }
 
   void close()
   {
-    io_service_.post(boost::bind(&chat_client::do_close, this));
+    io_service_.post(std::bind(&chat_client::do_close, this));
   }
 
 private:
@@ -50,8 +50,8 @@ private:
     {
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::header_length),
-          boost::bind(&chat_client::handle_read_header, this,
-            asio::placeholders::error));
+          std::bind(&chat_client::handle_read_header, this,
+            std::placeholders::_1));
     }
   }
 
@@ -61,8 +61,8 @@ private:
     {
       asio::async_read(socket_,
           asio::buffer(read_msg_.body(), read_msg_.body_length()),
-          boost::bind(&chat_client::handle_read_body, this,
-            asio::placeholders::error));
+          std::bind(&chat_client::handle_read_body, this,
+            std::placeholders::_1));
     }
     else
     {
@@ -78,8 +78,8 @@ private:
       std::cout << "\n";
       asio::async_read(socket_,
           asio::buffer(read_msg_.data(), chat_message::header_length),
-          boost::bind(&chat_client::handle_read_header, this,
-            asio::placeholders::error));
+          std::bind(&chat_client::handle_read_header, this,
+            std::placeholders::_1));
     }
     else
     {
@@ -96,8 +96,8 @@ private:
       asio::async_write(socket_,
           asio::buffer(write_msgs_.front().data(),
             write_msgs_.front().length()),
-          boost::bind(&chat_client::handle_write, this,
-            asio::placeholders::error));
+          std::bind(&chat_client::handle_write, this,
+            std::placeholders::_1));
     }
   }
 
@@ -111,8 +111,8 @@ private:
         asio::async_write(socket_,
             asio::buffer(write_msgs_.front().data(),
               write_msgs_.front().length()),
-            boost::bind(&chat_client::handle_write, this,
-              asio::placeholders::error));
+            std::bind(&chat_client::handle_write, this,
+              std::placeholders::_1));
       }
     }
     else
@@ -151,7 +151,9 @@ int main(int argc, char* argv[])
 
     chat_client c(io_service, iterator);
 
-    asio::thread t(boost::bind(&asio::io_service::run, &io_service));
+    asio::thread t([&] () {
+      io_service.run();
+    });
 
     char line[chat_message::max_body_length + 1];
     while (std::cin.getline(line, chat_message::max_body_length + 1))

@@ -1,8 +1,9 @@
 !ifndef BOOSTDIR
-BOOSTDIR = ../../boost_1_34_1
+BOOSTDIR = D:\dummy-boost-include
 !endif
 
-COMMON_CXXFLAGS = -nologo -EHac -GR -I. -I../include -I$(BOOSTDIR)
+SEPARATE_COMPILATION = 1
+COMMON_CXXFLAGS = -nologo -EHac -GR -I. -I../include -I$(BOOSTDIR) -DASIO_STANDALONE -DASIO_HAS_STD_TYPE_TRAITS -DASIO_HAS_STD_ARRAY -DASIO_HAS_STD_SHARED_PTR -DASIO_HAS_STD_ATOMIC -D ASIO_HAS_STD_CHRONO -D ASIO_HAS_STD_CHRONO_MONOTONIC_CLOCK -D ASIO_HAS_STD_ADDRESSOF -D ASIO_HAS_MOVE -D ASIO_HAS_CSTDINT
 
 !ifdef WARNINGS
 WARNINGS_CXXFLAGS = -W4 -wd4512
@@ -229,6 +230,10 @@ asio.lib: asio.cpp
 	cl -Fe$@ -Foasio.obj $(CXXFLAGS) $(DEFINES) -c asio.cpp
 	lib -name:asio.lib asio.obj
 !endif
+
+my: asio.lib \
+	examples\chat\chat_client.exe \
+	examples\chat\chat_server.exe
 
 all: \
 	$(LATENCY_TEST_EXES) \
