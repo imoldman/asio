@@ -3,7 +3,7 @@
 # Compiler-linker config
 # 
 # this must be macro, because we may use this option outside of this file
-macro (set_default_compiler_linker_config)
+macro (set_default_compiler_linker_config_asio)
   if (MSVC11)
       # ref: http://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nologo") # Suppresses display of sign-on banner
@@ -16,6 +16,7 @@ macro (set_default_compiler_linker_config)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWIN32 -DUNICODE -D_UNICODE -D_WINDOWS") # Windows/Unicode etc.
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_VARIADIC_MAX=10") # make varidic elments(tupple/bind/etc.) wide support
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS}")
+      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -MTd") # link to multi thread static library
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -RTC1") # enable runtime check
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Od") # disable optimize
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Gm") # enable minimal rebuild
