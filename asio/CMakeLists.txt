@@ -23,7 +23,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal.cmake")
 set_default_compiler_linker_config_asio()  # Defined in internal.cmake.
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
-include_directories("D:/dummy-boost-include")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../boost-preprocessor")
 
 add_definitions(-DASIO_STANDALONE)
 add_definitions(-DASIO_HAS_STD_TYPE_TRAITS -DASIO_HAS_STD_ARRAY -DASIO_HAS_STD_SHARED_PTR -DASIO_HAS_STD_FUNCTION)
